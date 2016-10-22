@@ -3,6 +3,7 @@ import d3 from 'd3';
 import copy from 'deepcopy';
 import equal from 'deep-equal';
 import Radium, {Style} from 'radium';
+import FontAwesome from 'react-fontawesome';
 
 const WIDTH = 800;
 const HEIGHT = 400;
@@ -49,7 +50,7 @@ export default class FileBrowser extends Component {
   }
 
   render() {
-    const { data, path, onMoveDown, onShowDetail, onHideDetail } = this.props;
+    const { data, path, onMoveDown, onShowFile, onShowDetail, onHideDetail } = this.props;
     const { prev: { data: prevData, path: prevPath } } = this.state;
 
     var code;
@@ -57,9 +58,9 @@ export default class FileBrowser extends Component {
     var folders = [];
     data.children.map(function(entry){
       if (entry.children.length === 0)
-        files.push(<div style={styles.row} className="row" key={entry.name}>{'file:'+ entry.name}</div>);
+        files.push(<div style={styles.row} className="row" key={entry.name} onClick={()=>onShowFile(entry.name)}><FontAwesome fixedWidth={true} name="file-text-o"/>{entry.name}</div>);
       else      
-        folders.push(<div style={styles.row} className="row" key={entry.name} onClick={()=>onMoveDown(entry.name)}>{'----:'+ entry.name}</div>);
+        folders.push(<div style={styles.row} className="row" key={entry.name} onClick={()=>onMoveDown(entry.name)}><FontAwesome fixedWidth={true} name="folder-o"/>{entry.name}</div>);
     })
 
     return (<div style={[styles.base]}>
@@ -95,7 +96,7 @@ var styles = {
     WebkitBorderVerticalSpacing: '0px',
   },
   row: {
-    backgroundColor: 'rgb(255, 252, 204)',
+    backgroundColor: '#fff',
     BorderBottomColor: 'rgb(128, 128, 128)',
     borderCollapse: 'collapse',
     BorderLeftColor: 'rgb(128, 128, 128)',
@@ -117,7 +118,7 @@ var styles = {
     width: 'auto',
     wordWrap: 'break-word',
     ':hover' : {
-      backgroundColor: 'yellow',
+      backgroundColor: '#f5f5f5',
     }
   } 
 

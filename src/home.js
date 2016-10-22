@@ -4,12 +4,14 @@ import { Link } from 'react-router';
 import { Tooltip, actions as tooltipActions } from 'redux-tooltip';
 import copy from 'deepcopy';
 import Treemap from './treemap';
-import DATA from './data.h';
 import FileBrowser from './FileBrowser';
 
-const hier = parsePathArray(DATA);
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { githubGist } from 'react-syntax-highlighter/dist/styles';
 
-function crop(path) {
+
+
+function crop(path, hier) {
   let cropped = hier;
   const remain = [...path];
   while (0 < remain.length) {
@@ -109,6 +111,52 @@ export default class Home extends Component {
   static displayName = 'Home';
   static contextTypes = { router: PropTypes.object };
 
+  constructor(props) {
+    super(props);
+
+    var DATA = require('./data.h').default;
+    var hier = parsePathArray(DATA);
+
+    this.state = {DATA: DATA, hier:hier, uname:'rickyhan', repo:'macintoshplus'};
+
+    this.handleClick = this.handleClick.bind(this);
+    this.handleRepoChange = this.handleRepoChange.bind(this);
+    this.handleUnameChange = this.handleUnameChange.bind(this);
+
+  }
+
+  handleClick(e) {
+    e.preventDefault();
+    var uname = this.state.uname;
+    var repo = this.state.repo;
+
+    console.log(uname,repo);
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = (e) => {
+      if (request.readyState !== 4) {
+        return;
+      }
+      if (request.status === 200) {
+        var res = JSON.parse(request.responseText);
+        this.setState({DATA: res, hier:parsePathArray(res),loading:false}, this.forceUpdate )
+      } else {
+        console.warn('error');
+      }
+    };
+    request.open('GET', `http://gittraverse.com:3000/api?username=${uname}&repo=${repo}`);
+    request.send();
+    this.setState({loading:true})
+  }
+
+  handleRepoChange(e) {
+    this.setState({repo: e.target.value});
+  }
+
+  handleUnameChange(e) {
+    this.setState({uname: e.target.value});
+  }
+
   handleMoveDown(name) {
     const { location } = this.props;
     const { router } = this.context;
@@ -116,10 +164,18 @@ export default class Home extends Component {
       name = '/' + name;
     }
 
-    console.log(location, name);
-
     router.push(`${location.pathname}${name}`);
+    this.handleHideFile();
   }
+
+  handleShowFile(name) {
+    var file = this.state.DATA.filter((r)=>r.filename==name)[0]; // this is buggy, could have many files w/ same name
+    this.setState({showFile:true, fileToShow: file});
+  }
+
+  handleHideFile(){
+    this.setState({showFile:false,fileToShow:null});
+  } 
 
   handleHover(origin, name) {
     this.props.dispatch(tooltipActions.show({ origin, content: name }));
@@ -130,14 +186,35 @@ export default class Home extends Component {
   }
 
   render() {
-    const { location, app: { base } } = this.props;
-    const pathname = location.pathname.replace(base, '');
-    const path = pathname.split('/').filter(s => 0 < s.length);
-    const data = crop(path);
+    var { location, app: { base } } = this.props;
+    var pathname = location.pathname.replace(base, '');
+    var path = pathname.split('/').filter(s => 0 < s.length);
+    var data = crop(path, this.state.hier);
+
+    var syntax;
+    if (this.state.showFile) {
+      syntax = <SyntaxHighlighter language='python' style={githubGist}>{this.state.fileToShow.content}</SyntaxHighlighter>;  
+    } else {
+      syntax = null;
+    }
+
+    var loading;
+    if (this.state.loading) {
+      loading = <div> loading ... </div>;
+    } else {
+      loading = null;
+    }
+
     return (
       <div>
         <div id="home" style={{ position: 'relative' }}>
           <h1>GitTraverse v0.0.0.1</h1>
+          <form>
+            <input type="text" value={this.state.uname} onChange={this.handleUnameChange}/>
+            <input type="text" value={this.state.repo} onChange={this.handleRepoChange}/>
+            <input type="submit" onClick={this.handleClick} />
+          </form>
+          {loading}
           <div className="path">
             <Link to={`${base}`} key="top" className="path-item">[ROOT]</Link>
             {path.map((name, i) => (
@@ -146,6 +223,7 @@ export default class Home extends Component {
           </div>
           <Treemap
             { ...{ data, path } }
+            onShowFile={::this.handleShowFile}
             onMoveDown={::this.handleMoveDown}
             onShowDetail={::this.handleHover}
             onHideDetail={::this.handleLeave}
@@ -155,9 +233,11 @@ export default class Home extends Component {
           <FileBrowser
             { ...{ data, path } }
             onMoveDown={::this.handleMoveDown}
+            onShowFile={::this.handleShowFile}
             onShowDetail={::this.handleHover}
             onHideDetail={::this.handleLeave}
           />
+        {syntax}
       </div>
     );
   }

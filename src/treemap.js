@@ -14,6 +14,7 @@ export default class Treemap extends Component {
     data: PropTypes.object.isRequired,
     path: PropTypes.array.isRequired,
     onMoveDown: PropTypes.func.isRequired,
+    onShowFile: PropTypes.func.isRequired,
     onShowDetail: PropTypes.func.isRequired,
     onHideDetail: PropTypes.func.isRequired,
   };
@@ -47,7 +48,7 @@ export default class Treemap extends Component {
   }
 
   renderTreemap() {
-    const { data, path, onMoveDown, onShowDetail, onHideDetail } = this.props;
+    const { data, path, onMoveDown, onShowFile, onShowDetail, onHideDetail } = this.props;
     const { prev: { data: prevData, path: prevPath } } = this.state;
 
     if (!this.svg) {
@@ -154,6 +155,8 @@ export default class Treemap extends Component {
         .on('click', d => {
           if (d.children) {
             onMoveDown(d.name);
+          } else {
+            onShowFile(d.name);
           }
         })
         .on('mousemove', d => {

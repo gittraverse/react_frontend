@@ -21,9 +21,11 @@
     "deepcopy": "^0.6.1",
     "react": "^0.14.8",
     "react-dom": "^0.14.8",
+    "react-fontawesome": "^1.2.0",
     "react-redux": "^4.4.2",
     "react-router": "^2.1.1",
     "react-router-redux": "^4.0.2",
+    "react-syntax-highlighter": "^2.10.0",
     "redux": "^3.4.0",
     "redux-actions": "^0.9.1",
     "redux-tooltip": "^0.5.3"
