@@ -17,7 +17,8 @@ ReactDOM.render(
       <Router history={history}>
         <Route path="/*" component={Home} />
       </Router>
-      <DevTools />
     </div>
   </Provider>,
 document.getElementById('container'));
+
+      // <DevTools />
